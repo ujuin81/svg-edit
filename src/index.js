@@ -72,6 +72,7 @@ function RectShape(svgCanvas) {
       // vertextRect.updatePosition(faceRect.deltaPosition);
     }
   );
+  // test
   // vertext
   var vertextRect = new DraggableRect(
     svgCanvas,
