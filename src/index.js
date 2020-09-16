@@ -67,7 +67,10 @@ function RectShape(svgCanvas) {
       _mouseDownRect.h = faceRect.rect.h;
     },
     function () {
-      //vertextRect.updatePosition;
+      vertextRect.updatePosition({
+        x: faceRect.rect.x + faceRect.rect.w,
+        y: faceRect.rect.y + faceRect.rect.h
+      });
       // console.log("updated ", faceRect.deltaPosition, vertextRect);
       // vertextRect.updatePosition(faceRect.deltaPosition);
     }
@@ -76,7 +79,7 @@ function RectShape(svgCanvas) {
   // vertext
   var vertextRect = new DraggableRect(
     svgCanvas,
-    { x: 0, y: 0, w: 10, h: 10 },
+    { x: 100, y: 100, w: 10, h: 10 },
     "fill: rgb(255, 255, 255);stroke: rgb(0, 0, 0);stroke-width: 2px;cursor: nw-resize;",
     function () {
       console.log(faceRect.mouseDownRect);
@@ -90,8 +93,8 @@ function RectShape(svgCanvas) {
       faceRect.updateRect({
         x: _mouseDownRect.x,
         y: _mouseDownRect.y,
-        w: vertextRect.rect.x,
-        h: vertextRect.rect.y
+        w: vertextRect.rect.x - _mouseDownRect.x,
+        h: vertextRect.rect.y - _mouseDownRect.y
       });
       // faceRect.updateRect(
     }
@@ -119,6 +122,7 @@ function DraggableRect(
   var isMouseDown = false;
   var mouseDownPosition = { x: 0, y: 0 };
   var _mouseDownRect = { x: 0, y: 0, w: 0, h: 0 };
+  var _mouseDownRectOffset = { x: 0, y: 0 };
 
   // creawte rect element
   // var rectElement = document.createElement("rect");
@@ -143,22 +147,25 @@ function DraggableRect(
     _mouseDownRect.h = _rect.h;
   }
 
-  rectElement.addEventListener("click", function (event) {
-    if (
-      _rect.x <= event.pageX &&
-      event.pageX <= _rect.x + _rect.w &&
-      _rect.y <= event.pageY &&
-      event.pageY <= _rect.y + _rect.h
-    ) {
-      console.log("click in area");
-    }
-    console.log("click", this);
-  });
+  // rectElement.addEventListener("click", function (event) {
+  //   if (
+  //     _rect.x <= event.pageX &&
+  //     event.pageX <= _rect.x + _rect.w &&
+  //     _rect.y <= event.pageY &&
+  //     event.pageY <= _rect.y + _rect.h
+  //   ) {
+  //     console.log("click in area");
+  //   }
+  //   console.log("click", this);
+  // });
 
   rectElement.addEventListener("mousedown", function (event) {
     console.log("mousedown", event.pageX, event.pageY);
     mouseDownPosition.x = event.pageX;
     mouseDownPosition.y = event.pageY;
+
+    _mouseDownRectOffset.x = (event.pageX - _rect.x) * -1;
+    _mouseDownRectOffset.y = (event.pageY - _rect.y) * -1;
 
     updateMousDownRect();
     isMouseDown = true;
@@ -168,12 +175,16 @@ function DraggableRect(
 
   rectElement.addEventListener("mouseup", function (event) {
     console.log("mouseup", event.pageX, event.pageY);
+    _mouseDownRectOffset.x = 0;
+    _mouseDownRectOffset.y = 0;
+
     updateMousDownRect();
     isMouseDown = false;
     draw();
   });
   svgCanvas.addEventListener("mousemove", function (event) {
     if (isMouseDown) {
+      // todo
       updatePosition({ x: event.pageX, y: event.pageY });
       draw();
       moveCallback();
@@ -181,12 +192,15 @@ function DraggableRect(
   });
 
   function updatePosition(position) {
-    _deltaPosition.x = position.x - mouseDownPosition.x;
-    _deltaPosition.y = position.y - mouseDownPosition.y;
-    _rect.x = _mouseDownRect.x + _deltaPosition.x;
-    _rect.y = _mouseDownRect.y + _deltaPosition.y;
-    _rect.w = _mouseDownRect.w + _deltaPosition.x;
-    _rect.h = _mouseDownRect.h + _deltaPosition.y;
+    _rect.x = position.x + _mouseDownRectOffset.x;
+    _rect.y = position.y + _mouseDownRectOffset.y;
+    // _deltaPosition.x = position.x - mouseDownPosition.x;
+    // _deltaPosition.y = position.y - mouseDownPosition.y;
+    // _rect.x = _mouseDownRect.x + _deltaPosition.x;
+    // _rect.y = _mouseDownRect.y + _deltaPosition.y;
+    // _rect.w = _mouseDownRect.w + _deltaPosition.x;
+    // _rect.h = _mouseDownRect.h + _deltaPosition.y;
+    draw();
   }
 
   function updateRect(newRect) {
@@ -207,8 +221,8 @@ function DraggableRect(
     // console.log("draw", rect);
     rectElement.setAttribute("x", _rect.x);
     rectElement.setAttribute("y", _rect.y);
-    rectElement.setAttribute("width", _rect.w - _rect.x);
-    rectElement.setAttribute("height", _rect.h - _rect.y);
+    rectElement.setAttribute("width", _rect.w);
+    rectElement.setAttribute("height", _rect.h);
   }
 
   function getRectElement() {
